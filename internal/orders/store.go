@@ -3,8 +3,10 @@ package orders
 import (
 	"context"
 	_ "embed"
+	"errors"
 	"fmt"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -52,6 +54,9 @@ func (s *Store) Create(ctx context.Context, n NewOrder) (Order, error) {
 func (s *Store) Get(ctx context.Context, id int64) (Order, error) {
 	row := s.pool.QueryRow(ctx, `SELECT `+columns+` FROM orders WHERE id = $1`, id)
 	o, err := scanOrder(row)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return Order{}, ErrNotFound
+	}
 	if err != nil {
 		return Order{}, fmt.Errorf("get order %d: %w", id, err)
 	}

@@ -2,6 +2,7 @@ package orders
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -87,6 +88,14 @@ func TestStoreListNewestFirst(t *testing.T) {
 	}
 	if len(list) != 2 || list[0].ID != b.ID || list[1].ID != a.ID {
 		t.Fatalf("got %+v, want orders %d then %d", list, b.ID, a.ID)
+	}
+}
+
+func TestStoreGetMissingOrder(t *testing.T) {
+	s := newTestStore(t)
+	_, err := s.Get(context.Background(), 424242)
+	if !errors.Is(err, ErrNotFound) {
+		t.Fatalf("got %v, want ErrNotFound", err)
 	}
 }
 
